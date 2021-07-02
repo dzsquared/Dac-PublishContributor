@@ -110,11 +110,17 @@ namespace Public.Dac.SampleFilters
             // The ObjectIdentifier 
             bool found = false;
             ObjectIdentifier id = tsqlObject.Name;
-            if (id.HasName && id.Parts.Count >= 2)  // was 1
+            if (id.HasName && id.Parts.Count >= 1)  // was 1
             {
                 // Assuming object name is always the second part (schema is first)
-                string objectName = id.Parts[1];  // was 0
+                string objectName = id.Parts[0];  // was 0
                 found = _objectNames.Contains(objectName, StringComparer.OrdinalIgnoreCase);
+
+                if (id.HasName && id.Parts.Count >= 2)
+                {
+                    string objectName1 = id.Parts[1];
+                    found = found || _objectNames.Contains(objectName1, StringComparer.OrdinalIgnoreCase);
+                }
             }
 
             if (Filtering == FilterType.Exclude)

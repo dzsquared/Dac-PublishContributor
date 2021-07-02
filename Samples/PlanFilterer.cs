@@ -33,7 +33,8 @@ using System.Linq;
 namespace Public.Dac.SampleFilters
 {
     /// <summary>
-    /// A Deployment plan modifier that filters "Create Element" steps from a deployment plan.
+    /// A Deployment plan modifier that filters "Create Element" steps and
+    /// "Alter Element" steps from a deployment plan.
     /// This stops elements from being created. This is a simple example. A more advanced
     /// version of this would probably check any SqlRenameSteps in the plan, but for this
     /// sample we're assuming that this isn't something the developer would have done. 
@@ -66,6 +67,12 @@ namespace Public.Dac.SampleFilters
                 {
                     base.Remove(context.PlanHandle, createStep);
                 }
+
+                AlterElementStep alterStep = current as AlterElementStep;
+                if (alterStep != null && ShouldFilter(alterStep))
+                {
+                    base.Remove(context.PlanHandle, alterStep);
+                }
             }
         }
 
@@ -77,6 +84,17 @@ namespace Public.Dac.SampleFilters
         {
             TSqlObject createdObject = createStep.SourceElement;
             return !_filter.Filter(new[] { createdObject }).Any();
+        }
+
+        /// <summary>
+        /// We should filter the step if the source or target element for the step
+        /// doesn't pass the filter
+        /// </summary>
+        private bool ShouldFilter(AlterElementStep alterStep)
+        {
+            TSqlObject sourceObject = alterStep.SourceElement;
+            TSqlObject targetObject = alterStep.TargetElement;
+            return !(_filter.Filter(new[] { sourceObject }).Any() && _filter.Filter(new[] { targetObject }).Any());
         }
 
         private void InitializeFilter(Dictionary<string, string> arguments)
